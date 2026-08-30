@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ status: "error", message: `Missing server environment variables: ${envResult.missing.join(", ")}`, retryable: false }, { status: 500 });
     }
 
-    const planResult = await planQuestion(parsed.data.message, parsed.data.history || [], envResult.env);
+    const planResult = await planQuestion(parsed.data.message, compactHistory(parsed.data.history || []), envResult.env);
     const planning = planResult.fallback
       ? { mode: "fallback" as const, failureCategory: process.env.NODE_ENV === "development" ? planResult.failureCategory : undefined }
       : { mode: "gemini" as const };
@@ -39,6 +39,13 @@ export async function POST(request: NextRequest) {
 
 function todayIso(timeZone: string) {
   return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+}
+
+function compactHistory(history: Array<{ role: "user" | "assistant"; content: string }>) {
+  return history.slice(-12).map((message) => ({
+    role: message.role,
+    content: message.content.slice(0, 1200),
+  }));
 }
 
 function emptyData() {

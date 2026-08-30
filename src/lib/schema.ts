@@ -81,7 +81,6 @@ export const queryPlanSchema = z.object({
 export const chatRequestSchema = z.object({
   message: z.string().trim().min(1).max(1000),
   history: z
-    .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(2000) }))
-    .max(6)
+    .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() }))
     .optional(),
 });

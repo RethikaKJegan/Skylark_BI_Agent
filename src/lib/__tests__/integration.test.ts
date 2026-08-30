@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { fetchBoard, mondayGraphql } from "../monday";
 import { fallbackPlan, geminiHealthCheck, planQuestion, stripJsonFences } from "../planner";
 import { formatAnswer } from "../format";
-import { queryPlanSchema } from "../schema";
+import { chatRequestSchema, queryPlanSchema } from "../schema";
 import type { BoardData } from "../types";
 
 const env = {
@@ -100,6 +100,17 @@ describe("integration behavior", () => {
     });
     expect(parsed.filters.dateRange).toBeUndefined();
     expect(parsed.referenceDate).toBeUndefined();
+  });
+
+  it("accepts long chat history without rejecting the request", () => {
+    const parsed = chatRequestSchema.safeParse({
+      message: "Show data quality gaps for deals and work orders.",
+      history: Array.from({ length: 20 }, (_, index) => ({
+        role: index % 2 === 0 ? "user" : "assistant",
+        content: "Long prior answer ".repeat(300),
+      })),
+    });
+    expect(parsed.success).toBe(true);
   });
 
   it("categorizes Gemini fallback without exposing keys", async () => {

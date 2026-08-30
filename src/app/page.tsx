@@ -44,7 +44,7 @@ export default function Home() {
   );
   const userQuestions = useMemo(() => messages.filter((message) => message.role === "user"), [messages]);
   const history = useMemo(
-    () => messages.slice(-8).map((message) => ({ role: message.role, content: message.content })),
+    () => messages.map((message) => ({ role: message.role, content: message.content })),
     [messages],
   );
   const conversationTitle = userQuestions.at(-1)?.content ?? "New BI conversation";
