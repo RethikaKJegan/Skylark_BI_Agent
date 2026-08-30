@@ -184,7 +184,7 @@ export function buildMetrics(data: BoardData, plan: QueryPlan, fallbackAsOfDate:
   const deals = applyDealFilters(data.deals, plan);
   const workOrderPlan =
     plan.intent === "overdue_work_orders"
-      ? { ...plan, filters: { ...plan.filters, statuses: plan.filters.statuses?.filter((status) => keyOf(status) !== "incomplete") } }
+      ? { ...plan, filters: { ...plan.filters, statuses: undefined } }
       : plan;
   const workOrders = applyWorkOrderFilters(data.workOrders, workOrderPlan);
   const pipe = pipelineSummary(deals);

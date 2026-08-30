@@ -74,6 +74,9 @@ describe("acceptance regression metrics", () => {
     const metrics = buildMetrics(data, { source: "work_orders", intent: "overdue_work_orders", metrics: ["overdue_work_orders"], filters: { statuses: ["incomplete"] }, groupBy: "status" }, "2026-08-30");
     expect(metrics.workOrders).toHaveLength(176);
     expect(metrics.overdue).toHaveLength(48);
+    const geminiSynonymMetrics = buildMetrics(data, { source: "work_orders", intent: "overdue_work_orders", metrics: ["overdue_work_orders"], filters: { statuses: ["not completed"] }, groupBy: "status" }, "2026-08-30");
+    expect(geminiSynonymMetrics.workOrders).toHaveLength(176);
+    expect(geminiSynonymMetrics.overdue).toHaveLength(48);
   });
 
   it("returns metric-specific responses and caveats", () => {
