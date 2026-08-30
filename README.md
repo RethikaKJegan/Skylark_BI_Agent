@@ -756,51 +756,10 @@ Resolution:
 * Kept numerical calculations independent of Gemini.
 * Exposed active/fallback status in the UI.
 
-## Current Limitations
 
-* The prototype uses a personal monday.com token rather than OAuth.
-* Board-column mappings depend on the supplied schemas.
-* Cross-board analysis is primarily aggregate-level.
-* Time-series analysis is limited when date and month fields are incomplete.
-* Fallback mode understands fewer language variations.
-* Conversation persistence depends on the current application storage implementation.
-* Very large boards may require additional caching and background synchronisation.
-
-## Future Improvements
-
-* monday.com OAuth authentication
-* Configurable board and column mapping UI
-* Stable cross-board deal identifier
-* Cached analytics layer
-* Incremental board synchronisation
-* Scheduled refresh
-* User authentication and access control
-* Persistent server-side conversation history
-* Streaming Gemini responses
-* Export to CSV and PDF
-* Saved dashboard views
-* Automated anomaly alerts
-* Expanded automated test coverage
-* Observability and performance monitoring
-* Row-level source traceability for every metric
-
-## Submission Checklist
-
-* [ ] Replace `<LIVE_VERCEL_URL>`
-* [ ] Replace `<GITHUB_REPOSITORY_URL>`
-* [ ] Replace `<YOUR_NAME>`
-* [ ] Confirm GitHub repository is public
-* [ ] Confirm Vercel application is publicly accessible
-* [ ] Confirm monday.com boards are accessible to the configured token
-* [ ] Confirm Gemini shows active
-* [ ] Confirm secrets are not committed
-* [ ] Confirm README environment-variable names match the code
-* [ ] Run the production build
-* [ ] Test the public link in an incognito window
-* [ ] Submit the public application and GitHub links
 
 ## Author
 
-**<YOUR_NAME>**
+**Rethika K Jegan**
 
 Full Stack Developer Assignment — Skylark Drones
