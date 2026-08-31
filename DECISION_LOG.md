@@ -1,49 +1,179 @@
-# Decision Log
+# Decision Log — Skylark BI Agent
 
 ## Completed Scope
 
-Built a minimal full-stack prototype for the Skylark BI Agent using Next.js App Router, TypeScript, Tailwind, Zod and Vitest. The app includes a responsive dashboard, chat flow, clarification handling, Monday.com GraphQL reads, pagination, normalization, deterministic metrics, Gemini planning with fallback, data-quality caveats, leadership updates, tests, README and environment documentation.
+I built a minimal full-stack prototype of the Skylark BI Agent using Next.js App Router, TypeScript, Tailwind CSS, Zod, Vitest, monday.com GraphQL and Gemini.
+
+The application includes:
+
+* A responsive ChatGPT-style conversational interface
+* Live read-only access to Deal Funnel and Work Order monday.com boards
+* Paginated board-data retrieval
+* Data normalisation and quality reporting
+* Gemini-based query planning
+* Deterministic metric calculations
+* Clarification handling for ambiguous questions
+* Rule-based fallback when Gemini is unavailable
+* KPI cards, tables, graphs and structured visualisations
+* Cross-board aggregate comparisons
+* Leadership-update generation
+* API, calculation, normalisation and secret-leakage tests
+* Vercel-compatible deployment
+* README and environment-configuration documentation
+
+## Key Assumptions
+
+* monday.com is the live source of truth. The application performs read-only GraphQL operations and does not create, update or delete board data.
+* The imported boards follow the supplied Deal Funnel and Work Order structures, although internal monday.com column IDs may differ.
+* Missing financial values represent unknown information and must not be treated as zero.
+* Monetary values are in INR. GST-inclusive and GST-exclusive fields must remain separate.
+* Masked deal names can repeat and therefore cannot be treated as unique cross-board identifiers.
+* Cross-board comparisons are performed at aggregate sector or compatible owner level.
+* Confirmed overdue work orders require a valid probable end date and a present non-completed execution status.
+* Records with missing probable end dates or execution statuses are reported separately.
+* Asia/Kolkata is used as the default business timezone.
+* A personal monday.com API token is acceptable for this assignment prototype. A production multi-user application would require OAuth.
 
 ## Tech Stack Choice
 
-Next.js App Router was chosen because the assignment needs a single deployable app with server-only credentials, API routes and a responsive UI. TypeScript keeps Monday records, query plans and metric calculations typed. Tailwind keeps the interface polished without adding a heavy component framework. Zod validates incoming chat requests and Gemini query plans before business logic runs. Vitest gives fast unit and integration tests for calculations, normalization, API failures and secret leakage.
+Next.js App Router was selected because the assignment requires a single deployable application with a responsive frontend, server-side API routes and protected credentials.
+
+TypeScript keeps monday.com records, query plans, metric results and visual response blocks typed. Tailwind CSS provides a polished responsive interface without introducing a heavy UI framework. Zod validates incoming chat requests and Gemini-generated query plans before business logic executes. Vitest provides fast unit and integration testing for calculations, normalisation, API failures and secret leakage.
+
+The application is deployable on Vercel without a separate backend service or database.
 
 ## Conversational Interface
 
-The UI is a ChatGPT-style business chat instead of a static dashboard. The user can ask repeated follow-up questions in one conversation. The browser may send full chat history, while the server compacts recent history before Gemini planning so long conversations do not fail request validation or expose credentials.
+The interface is structured as a business chat rather than a static dashboard. Users can ask questions, choose clarification options and continue with follow-up questions in the same conversation.
+
+Conversation context is included with chat requests and bounded server-side before being passed to Gemini. This preserves follow-up understanding while preventing unbounded request growth. API credentials remain server-only and are never included in conversation history.
+
+Responses are rendered according to the question and may contain explanatory text, KPI cards, graphs, tables, insights and relevant caveats.
 
 ## AI Interprets, Code Calculates
 
-Gemini is limited to translating conversational questions into a validated `QueryPlan`. Zod rejects malformed plans. Numeric totals, rates, grouping and overdue logic are calculated by deterministic TypeScript functions so answers remain auditable and do not depend on model arithmetic.
+Gemini is limited to translating conversational questions into a structured `QueryPlan`. The plan identifies the requested metric, filters, grouping, date scope and required clarification.
 
-## Monday GraphQL API
+Zod rejects malformed or unsupported plans. Numeric totals, percentages, grouping, ranking and overdue calculations are performed by deterministic TypeScript functions.
 
-Monday.com GraphQL is the only production data source because the PRD requires live board data, free-tier compatibility and no database. The implementation fetches board columns and items server-side, pins the API version, uses `items_page(limit: 500)`, follows `next_items_page` cursors and retries temporary failures once.
+This separation was chosen because language models are useful for interpreting flexible language but should not be trusted to calculate authoritative business totals. It keeps answers repeatable, testable and auditable.
 
-## Row-Level Joins Rejected
+The configured runtime model is `gemini-3.1-flash-lite`, selected for low latency and suitability for structured query planning.
 
-Cross-board analysis is aggregate-only by normalized sector or owner. Masked deal names can repeat and create many-to-many matches, so exact row linkage would create false precision. When a question asks for specific deal-to-work-order conversion, the app should explain that a reliable shared unique identifier is missing.
+## monday.com GraphQL API
 
-## Missing Data Handling
+Direct monday.com GraphQL was selected instead of MCP because it provides explicit control over authentication, pagination, board schemas and server-side data retrieval while remaining simple to deploy on Vercel.
 
-Missing numeric values are never converted to zero. Blank strings, `N/A`, `NA`, `null` and `-` are treated as missing where appropriate. Invalid non-empty dates and numbers are counted as quality issues. Negative numbers are preserved and flagged as anomalies, especially receivables and backlog values.
+The application:
+
+* Uses monday.com as the only production business-data source
+* Never hardcodes spreadsheet records into application code
+* Fetches board columns and items server-side
+* Pins the monday.com API version
+* Uses `items_page(limit: 500)`
+* Follows `next_items_page` cursors
+* Retries temporary failures once
+* Maps monday.com columns into normalized business fields
+* Caches successful board responses for up to 60 seconds
+
+The trade-off is tighter coupling to monday.com’s GraphQL schema compared with an MCP-based integration.
+
+## Cross-Board Analysis
+
+Exact row-level joins were rejected because masked deal names are repeated and can produce many-to-many matches. Joining on those names would create false precision and potentially incorrect conversion metrics.
+
+Cross-board analysis is therefore performed using normalized aggregate dimensions such as sector or compatible owner code.
+
+When a user requests an exact deal-to-work-order conversion that cannot be supported safely, the application explains that a reliable shared unique identifier is missing instead of inventing a relationship.
+
+## Data Resilience
+
+The data contains missing values, inconsistent text, malformed imported rows and negative financial anomalies.
+
+The normalisation layer:
+
+* Trims whitespace
+* Normalizes text and status capitalisation
+* Treats blank strings, `N/A`, `NA`, `null` and `-` as missing where appropriate
+* Parses numbers and dates safely
+* Counts invalid non-empty values as quality problems
+* Excludes malformed repeated-header rows from business calculations
+* Preserves negative numbers and reports them as anomalies
+* Keeps missing values distinct from zero
+* Reports data coverage and calculation caveats
+
+Results remain meaningful when data is incomplete, while the user is informed about excluded or uncertain records.
 
 ## Metric Definitions
 
-Open pipeline sums known masked deal values where status is `Open`; on-hold pipeline is separate. Win rate is `Won / (Won + Dead)`. Collection rate uses collected including GST over billed including GST. Positive receivables and unbilled backlog include only positive values. Overdue work orders use probable end date before today in the configured business timezone and non-completed execution status.
+* **Open pipeline:** Sum of known masked deal values where normalized Deal Status is `Open`.
+* **On-hold pipeline:** Calculated and reported separately from open pipeline.
+* **Win rate:** `Won / (Won + Dead)`.
+* **Collection rate:** Collected Amount Including GST divided by Billed Value Including GST.
+* **Positive receivables:** Sum of receivable values greater than zero.
+* **Unbilled backlog:** Sum of positive amount-to-be-billed values.
+* **Confirmed overdue:** Probable End Date before the as-of date, Execution Status present, and normalized Execution Status not equal to `Completed`.
+
+Missing values are excluded from applicable sums and reported as caveats. Negative receivables and backlog values are disclosed separately rather than silently converted to zero or netted against positive totals.
+
+## Clarification Handling
+
+Some business questions do not have one safe interpretation.
+
+For example:
+
+* “Revenue” may mean pipeline, contracted, billed or collected value.
+* “Energy sector” may mean Renewables, Powerline or both.
+* “Usable records” may refer to valid primary keys, recognised statuses or another completeness rule.
+
+The application asks a focused clarification question with selectable choices instead of choosing an arbitrary definition.
+
+## Failure Handling and Security
+
+Temporary monday.com failures are retried once. If live board data remains unavailable, the application returns a clear error instead of generating totals from missing data.
+
+Gemini failures activate deterministic fallback for supported queries. Invalid Gemini output is rejected by Zod and routed to fallback or clarification.
+
+Secrets remain in server-side environment variables. Tokens, board credentials, stack traces and full internal errors are never returned to the browser or included in logs.
 
 ## Free-Tier Architecture
 
-The app uses Vercel-compatible server routes, native `fetch`, no database and short in-memory caching. Successful Monday board responses are cached for up to 60 seconds. Basic in-memory per-IP rate limiting is included as a lightweight guard.
+The prototype uses Vercel-compatible server routes, native `fetch`, no database and short in-memory caching. Basic in-memory per-IP rate limiting is included as a lightweight guard.
 
-## Leadership Update
+This design is sufficient for an assignment prototype and avoids paid infrastructure. However, cache and rate-limit state are not globally consistent across multiple serverless instances.
 
-The leadership update is treated as a concise executive brief assembled from the same deterministic metrics and caveats as regular answers. It includes the required sections: executive headline, sales pipeline, delivery and execution, billing and cash, top risks and data-quality caveats.
+## Leadership Update Interpretation
 
-## Trade-Offs
+I interpreted “prepare data for leadership updates” as generating a concise executive brief from the same deterministic metrics used by normal answers.
 
-The fallback parser intentionally covers only supported suggested questions and obvious acceptance scenarios. The UI is polished but deliberately simple. In-memory rate limiting and caching are acceptable for the assignment prototype but are not globally consistent across multiple serverless instances.
+The leadership update contains:
+
+1. Executive headline
+2. Sales-pipeline position
+3. Delivery and execution status
+4. Billing and cash position
+5. Top operational or concentration risks
+6. Relevant data-quality caveats
+
+It prioritises decision-relevant insights instead of presenting every available metric.
+
+
 
 ## Improvements With More Time
 
-Add richer charting, broader natural-language date parsing, a full deployed smoke-test script, more mocked Monday schema variants, and optional observability that redacts board contents and credentials.
+With additional time, I would add:
+
+* monday.com OAuth
+* Configurable board and column mapping
+* A stable shared identifier across boards
+* Broader natural-language date handling
+* Persistent conversation storage
+* Distributed caching and rate limiting
+* Incremental monday.com synchronisation
+* Streaming Gemini responses
+* Richer chart selection and drill-down
+* CSV and PDF exports
+* Automated deployed smoke tests
+* More mocked monday.com schema variants
+* Observability with credential and board-data redaction
+* Expanded accessibility and end-to-end testing
