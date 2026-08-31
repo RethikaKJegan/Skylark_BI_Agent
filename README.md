@@ -7,7 +7,7 @@ The application combines Gemini-based intent understanding with deterministic bu
 ## Live Application
 
 * **Hosted application:** [Open Skylark BI](https://skylark-bi-agent-hvi3vuuwi-keejreths-6183.vercel.app/)
-* **GitHub repository:** [View source code](\https://github.com/RethikaKJegan/Skylark_BI_Agent)
+* **GitHub repository:** [View source code](https://github.com/RethikaKJegan/Skylark_BI_Agent)
 
 ## Assignment Overview
 
@@ -699,19 +699,7 @@ Manual checks:
 * Secrets are absent from browser source and network responses.
 * Mobile layout has no horizontal overflow.
 
-## AI Tools Used
 
-AI tools were permitted for this assignment.
-
-Tools used during development:
-
-* **ChatGPT** — requirements analysis, architecture discussion, data validation and test-case design
-* **OpenAI Codex** — code generation, refactoring, debugging and UI implementation
-* **Gemini** — runtime natural-language intent interpretation
-* **GitHub** — version control
-* **Vercel** — automated deployment
-
-All generated code and calculations were reviewed and tested. I can explain the architecture, data flow, business definitions and technical decisions used in the implementation.
 
 ## Challenges
 
