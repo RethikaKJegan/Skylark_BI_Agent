@@ -1,4 +1,4 @@
-# Decision Log — Skylark BI Agent
+# Decision Log : Skylark BI Agent
 
 ## Completed Scope
 
