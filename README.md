@@ -6,7 +6,7 @@ The application combines Gemini-based intent understanding with deterministic bu
 
 ## Live Application
 
-* **Hosted application:** [Open Skylark BI](https://skylark-bi-agent-hvi3vuuwi-keejreths-6183.vercel.app/)
+* **Hosted application:** [Open Skylark BI](https://skylark-bi-agent-nu.vercel.app?_vercel_share=70n2PcAebUF69uyzj7RWe1SLo742lxAN)
 * **GitHub repository:** [View source code](https://github.com/RethikaKJegan/Skylark_BI_Agent)
 
 ## Assignment Overview
